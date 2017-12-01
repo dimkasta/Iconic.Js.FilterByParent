@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Child select filter</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">-->
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12">
+            <select multiple id="groups">
+                <option value="">Επιλέξτε</option>
+                <option value="1">Ολόκληρη Μοτό</option>
+                <option value="2">Ζάντες - Λάστιχα</option>
+            </select>
+            <select multiple id="options">
+                <option value="">Επιλέξτε</option>
+                <optgroup data-parent="1" label="Χώμα">
+                <option data-parent="1" value="1">ΑΤΒ</option>
+                <option data-parent="1" value="2">Buggy</option>
+                <option data-parent="1" value="3">Classic</option>
+                </optgroup>
+                <optgroup data-parent="1" label="Ρετρό">
+                <option data-parent="1" value="4">NAked</option>
+                <option data-parent="1" value="5">Onoff</option>
+                <option data-parent="1" value="6">scooter</option>
+                </optgroup>
+                <optgroup data-parent="2" label="Δημοφιλή">
+                <option data-parent="2" value="7">Λάστιχα</option>
+                <option data-parent="2" value="8">Ζάντες</option>
+                </optgroup>
+                <optgroup data-parent="2" label="Άλλα">
+                <option data-parent="2" value="9">Ακτίνες</option>
+                <option data-parent="2" value="10">Αντάπτορες</option>
+                </optgroup>
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12 " id="types">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <form class="form form-inline" id="stage">
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+<script>
+    $(function(){
+
+        var maxNumber = 3;
+
+        var button = $("<a/>").prop("href", "#").addClass("btn btn-default").text("Προσθήκη").css("display", "none");
+
+        var groups = $("#groups");
+        var group = groups.clone();
+        group.prop("multiple", false);
+        group.prop("id", "group");
+        group.addClass("form-control");
+        group.data("target", "#groups");
+        var groupGroup = $("<div/>").addClass("form-group");
+        group.appendTo(groupGroup);
+        groupGroup.appendTo("#stage");
+
+        var options = $("#options");
+        var option = options.clone();
+        option.prop("id", "option");
+        option.data("parent", "#group");
+        option.prop("multiple", false);
+        option.setParent();
+        option.addClass("form-control");
+        option.data("target", "#options");
+        var optionGroup = $("<div/>").addClass("form-group");
+        option.appendTo(optionGroup);
+        optionGroup.appendTo("#stage");
+
+        option.on("change", function() {
+            if(option.val() !== "")
+            {
+                button.css("display", "inline-block");
+            }
+            else
+            {
+                button.css("display", "none");
+            }
+        });
+
+        button.appendTo("#stage");
+
+        button.on("click", function(){
+            addOption();
+        });
+
+        var rebuildLists = function() {
+            groups.val("");
+            options.val("");
+            var groupValues = [];
+            var optionValues = [];
+            $.each(selectedOptions, function(){
+                groupValues.push(this.group);
+                optionValues.push(this.option);
+            });
+            groups.val(groupValues);
+            options.val(optionValues);
+            drawList();
+            group.val("");
+            group.trigger("change");
+            option.val("");
+            option.trigger("change");
+
+            if(selectedOptions.length >= maxNumber)
+            {
+                $("#stage").css("display", "none");
+            }
+            else
+            {
+                $("#stage").css("display", "block");
+            }
+        };
+
+        var addOption = function() {
+            var value = option.val();
+            var exists = false;
+            $.each(selectedOptions, function(){
+                if(this.option === value)
+                {
+                    exists = true;
+                }
+            });
+            if (! exists) {
+                var thisOption = {
+                    group: group.val(),
+                    groupText: $("option:selected", group).text(),
+                    option: option.val(),
+                    optionText: $("option:selected", option).text()
+                };
+                selectedOptions.push(thisOption);
+            }
+            rebuildLists();
+        };
+
+        var removeOption = function(event) {
+            console.log("rem");
+console.log(this);
+            for(var x; x < selectedOptions.length; x++)
+            {
+                console.log(selectedOptions[x].option);
+                if(selectedOptions[x].option == this.data("id"))
+                {
+                    selectedOptions.splice(x, 1);
+                }
+            }
+        };
+
+        var drawList = function() {
+            var types = $("#types");
+            types.empty();
+
+            $.each(selectedOptions, function(){
+                var breadcrumb = $("<ol/>").addClass("breadcrumb").data("modelId", option.id);
+                var step1 = $("<li/>").text(this.groupText);
+                var step2 = $("<li/>").text(this.optionText);
+                
+                step1.appendTo(breadcrumb);
+                step2.appendTo(breadcrumb);
+                step3.appendTo(breadcrumb);
+                breadcrumb.appendTo(types);
+            });
+        };
+
+        var selectedOptions = [];
+//        console.log(selectedOptions);
+    });
+
+    $.fn.setParent = function() {
+        var filterChildren = function(element, parentValue) {
+            element.val('');
+            if(parentValue == "")
+            {
+                element.css("display", "none");
+            }
+            else
+            {
+                element.css("display", "block");
+            }
+            var children = element.children();
+            $.each(children, function(key, value){
+                var childParent = $(this).data("parent");
+                if(parentValue*1 === childParent*1)
+                {
+                    $(this).css("display", "block");
+                }
+                else
+                {
+                    $(this).css("display", "none");
+                }
+            });
+            element.trigger("change");
+        };
+
+        var parent = $(this.data("parent"));
+        var self = this;
+
+        filterChildren(self, parent.val());
+
+        parent.on("change", function(){
+            filterChildren(self, $(this).val());
+        });
+    };
+
+
+</script>
+
+</body>
+</html>
